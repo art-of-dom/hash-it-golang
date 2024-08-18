@@ -55,7 +55,8 @@ func main() {
 		crcType := crcmap[strings.ToUpper(args.Name)]
 
 		if crcType == nil {
-			fmt.Println("Unknown Hash. Posible hashes are:\n")
+			fmt.Println("Unknown Hash. Posible hashes are:")
+			fmt.Println()
 			for k := range crcmap {
 				fmt.Println(k)
 			}
@@ -66,7 +67,7 @@ func main() {
 		if args.File != "" {
 			f, err := os.Open(args.File)
 			if err != nil {
-				fmt.Println("unable to read file: %v", err)
+				fmt.Printf("unable to read file: %v\n", err)
 			}
 			defer f.Close()
 			stat, err := f.Stat()
