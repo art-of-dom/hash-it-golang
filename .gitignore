@@ -17,6 +17,9 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
+# swap file
+*.sw?
+
 # Go workspace file
 go.work
 go.work.sum
@@ -26,3 +29,4 @@ go.work.sum
 
 # binary
 hash-it
+main
