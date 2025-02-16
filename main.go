@@ -1,13 +1,13 @@
 package main
 
 import (
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"github.com/art-of-dom/hash-it/internal/hashdefs"
-	"github.com/snksoft/crc"
 	"io"
 	"os"
-	"strconv"
+	"reflect"
 	"strings"
 )
 
@@ -40,7 +40,7 @@ func getArgs() (result HashItArgs) {
 }
 
 func main() {
-	var ccittCrc uint64
+	var ccittCrc []byte
 	args := getArgs()
 	crcmap := hashdefs.MapCrcs()
 
@@ -52,9 +52,9 @@ func main() {
 			args.Input = reverseStr(args.Input)
 		}
 
-		crcType := crcmap[strings.ToUpper(args.Name)]
+		h := hashdefs.GetHash(strings.ToUpper(args.Name))
 
-		if crcType == nil {
+		if h == nil {
 			fmt.Println("Unknown Hash. Posible hashes are:")
 			fmt.Println()
 			for k := range crcmap {
@@ -68,6 +68,7 @@ func main() {
 			f, err := os.Open(args.File)
 			if err != nil {
 				fmt.Printf("unable to read file: %v\n", err)
+				os.Exit(4)
 			}
 			defer f.Close()
 			stat, err := f.Stat()
@@ -81,22 +82,26 @@ func main() {
 				os.Exit(3)
 			}
 			if n > 0 {
-				ccittCrc = crc.CalculateCRC(crcType, buf)
+				h.Write([]byte(buf))
+				ccittCrc = h.Sum(nil)
 			}
 		} else {
-			ccittCrc = crc.CalculateCRC(crcType, []byte(args.Input))
+			h.Write([]byte(args.Input))
+			ccittCrc = h.Sum(nil)
 		}
 
 		if args.Verify != "" {
-			v, err := strconv.ParseUint(args.Verify, 16, 64)
+			v, err := hex.DecodeString(args.Verify)
+			fmt.Printf("0x%04X\n", v)
+
 			if err != nil {
 				os.Exit(3)
 			}
-			if v != ccittCrc {
+			if !reflect.DeepEqual(v, ccittCrc) {
 				os.Exit(2)
 			}
 		} else {
-			fmt.Printf("CRC is 0x%04X\n", ccittCrc) // prints "CRC is 0x29B1"
+			fmt.Printf("CRC is 0x%04X\n", ccittCrc) // prints "CRC is "
 		}
 	}
 }
